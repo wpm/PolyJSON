@@ -1,21 +1,9 @@
 package wpm
 
 import spray.json._
-import DefaultJsonProtocol._
 import PolyJSON._
 
-object AnnotationJSON {
-  implicit def jsonToAnnotation(json: JsValue): Annotation = {
-    val fields = json.asJsObject.fields
-    val t = fields("type").convertTo[String]
-    val fv = fields - "type"
-    t match {
-      case "Token" => Token(fv("start").convertTo[Int], fv("end").convertTo[Int])
-      case "PartOfSpeech" => PartOfSpeech(fv("pos").convertTo[String])
-      case _ => throw new Exception(s"Invalid annotation $json")
-    }
-  }
-
+object AnnotationJSON extends DefaultJsonProtocol {
   implicit def annotationToJson(annotation: Annotation): JsObject = {
     val fvs: Seq[(String, Any)] = Seq(("type", annotation.getClass.getSimpleName)) ++
       annotation.getClass.getDeclaredFields.map(field => {
@@ -30,4 +18,17 @@ object AnnotationJSON {
                     }) yield f -> jv
     JsObject(jfvs: _*)
   }
+
+  implicit def jsonToAnnotation(json: JsValue): Annotation = {
+    val fields = json.asJsObject.fields
+    val t = fields("type").convertTo[String]
+    t match {
+      case "Token" => json.convertTo[Token]
+      case "PartOfSpeech" => json.convertTo[PartOfSpeech]
+      case _ => throw new Exception(s"Invalid annotation $json")
+    }
+  }
+
+  implicit val tokenFormat = jsonFormat2(Token)
+  implicit val partOfSpeechFormat = jsonFormat1(PartOfSpeech)
 }
