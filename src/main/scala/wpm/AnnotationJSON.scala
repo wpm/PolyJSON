@@ -4,28 +4,18 @@ import spray.json._
 import PolyJSON._
 
 object AnnotationJSON extends DefaultJsonProtocol {
-
-  implicit object TokenFormat extends RootJsonFormat[Token] {
-    val untypedFormat = jsonFormat2(Token)
-
-    override def write(obj: Token) = {
-      val fv = untypedFormat.write(obj).asJsObject.fields + ("type" -> JsString("Token"))
+  def typedFormat[T <: Annotation](untypedFormat: RootJsonFormat[T]) = new RootJsonFormat[T] {
+    override def write(obj: T): JsValue = {
+      val className = obj.getClass.getSimpleName
+      val fv = untypedFormat.write(obj).asJsObject.fields + ("type" -> JsString(className))
       JsObject(fv)
     }
 
     override def read(json: JsValue) = untypedFormat.read(json)
   }
 
-  implicit object PartOfSpeechFormat extends RootJsonFormat[PartOfSpeech] {
-    val untypedFormat = jsonFormat1(PartOfSpeech)
-
-    override def write(obj: PartOfSpeech) = {
-      val fv = untypedFormat.write(obj).asJsObject.fields + ("type" -> JsString("PartOfSpeech"))
-      JsObject(fv)
-    }
-
-    override def read(json: JsValue) = untypedFormat.read(json)
-  }
+  implicit val tokenFormat = typedFormat(jsonFormat2(Token))
+  implicit val partOfSpeechFormat = typedFormat(jsonFormat1(PartOfSpeech))
 
   implicit object AnnotationFormat extends RootJsonFormat[Annotation] {
     override def write(annotation: Annotation) = {

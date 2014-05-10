@@ -21,7 +21,7 @@ object PolyJSON {
     println(pos.toJson.prettyPrint)
     require(pos.toJson.convertTo[Annotation] == pos)
 
-    val tokens:Seq[Annotation] = Seq(Token(3, 5), PartOfSpeech("noun"))
+    val tokens: Seq[Annotation] = Seq(Token(3, 5), PartOfSpeech("noun"))
     println(tokens.toJson.prettyPrint)
     require(tokens.toJson.convertTo[Seq[Annotation]] == tokens)
   }
