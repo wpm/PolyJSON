@@ -1,5 +1,7 @@
 package wpm
 
+import spray.json._
+
 object PolyJSON {
 
   trait Annotation
@@ -12,11 +14,15 @@ object PolyJSON {
     import AnnotationJSON._
 
     val token = Token(3, 5)
-    println(token.prettyPrint)
-    require(jsonToAnnotation(token) == token)
+    println(token.toJson.prettyPrint)
+    require(token.toJson.convertTo[Annotation] == token)
 
     val pos = PartOfSpeech("noun")
-    println(pos.prettyPrint)
-    require(jsonToAnnotation(pos) == pos)
+    println(pos.toJson.prettyPrint)
+    require(pos.toJson.convertTo[Annotation] == pos)
+
+    val tokens:Seq[Annotation] = Seq(Token(3, 5), PartOfSpeech("noun"))
+    println(tokens.toJson.prettyPrint)
+    require(tokens.toJson.convertTo[Seq[Annotation]] == tokens)
   }
 }
