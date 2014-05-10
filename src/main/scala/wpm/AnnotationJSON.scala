@@ -36,10 +36,14 @@ object AnnotationJSON extends DefaultJsonProtocol {
         })
       val jfvs = for ((f, v) <- fvs.toSeq if v != None;
                       jv = v match {
-                        case Some(x) => JsString(x.toString)
-                        case x: Int => JsNumber(x)
-                        case x => JsString(x.toString)
-                      }) yield f -> jv
+                        // TODO Support Option types that are not strings.
+                        case Some(o) => JsString(o.toString)
+                        case None => JsNull
+                        case i: Int => JsNumber(i)
+                        case b: Boolean => JsBoolean(b)
+                        case s => JsString(s.toString)
+                      }
+      ) yield f -> jv
       JsObject(jfvs: _*)
     }
 
