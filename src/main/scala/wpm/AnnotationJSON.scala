@@ -15,9 +15,6 @@ object AnnotationJSON extends DefaultJsonProtocol {
     override def read(json: JsValue) = untypedFormat.read(json)
   }
 
-  implicit val tokenFormat = typedFormat(jsonFormat2(Token))
-  implicit val partOfSpeechFormat = typedFormat(jsonFormat1(PartOfSpeech))
-
   implicit object AnnotationFormat extends RootJsonFormat[Annotation] {
     override def write(annotation: Annotation) = {
       def convert(o: Any): JsValue = o match {
@@ -49,4 +46,6 @@ object AnnotationJSON extends DefaultJsonProtocol {
     }
   }
 
+  implicit val tokenFormat = typedFormat(jsonFormat2(Token))
+  implicit val partOfSpeechFormat = typedFormat(jsonFormat1(PartOfSpeech))
 }
