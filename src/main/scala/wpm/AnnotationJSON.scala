@@ -9,6 +9,8 @@ import scala.{Boolean, Int}
  * the JSON object.
  */
 object AnnotationJSON extends DefaultJsonProtocol {
+  val TYPE: String = "type"
+
   /**
    * JSON serializer of an Annotation that writes the class name in as a type field.
    * @param untypedFormat serializer that does not write the type information, e.g. jsonFormat1, jsonFormat2
@@ -18,7 +20,7 @@ object AnnotationJSON extends DefaultJsonProtocol {
   def typedFormat[T <: Annotation](untypedFormat: RootJsonFormat[T]) = new RootJsonFormat[T] {
     override def write(obj: T): JsValue = {
       val className = obj.getClass.getSimpleName
-      val fv = untypedFormat.write(obj).asJsObject.fields + ("type" -> JsString(className))
+      val fv = untypedFormat.write(obj).asJsObject.fields + (TYPE -> JsString(className))
       JsObject(fv)
     }
 
@@ -42,7 +44,7 @@ object AnnotationJSON extends DefaultJsonProtocol {
         case _ => throw new Exception(s"No JSON conversion for $o")
       }
 
-      val fvs: Seq[(String, Any)] = Seq(("type", annotation.getClass.getSimpleName)) ++
+      val fvs: Seq[(String, Any)] = Seq((TYPE, annotation.getClass.getSimpleName)) ++
         annotation.getClass.getDeclaredFields.map(field => {
           field setAccessible true
           (field.getName, field.get(annotation))
@@ -53,7 +55,7 @@ object AnnotationJSON extends DefaultJsonProtocol {
 
     override def read(json: JsValue) = {
       val fields = json.asJsObject.fields
-      val t = fields("type").convertTo[String]
+      val t = fields(TYPE).convertTo[String]
       t match {
         case "Token" => json.convertTo[Token]
         case "PartOfSpeech" => json.convertTo[PartOfSpeech]
