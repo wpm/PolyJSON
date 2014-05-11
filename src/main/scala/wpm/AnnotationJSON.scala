@@ -2,6 +2,7 @@ package wpm
 
 import spray.json._
 import PolyJSON._
+import scala.{Boolean, Int}
 
 object AnnotationJSON extends DefaultJsonProtocol {
   def typedFormat[T <: Annotation](untypedFormat: RootJsonFormat[T]) = new RootJsonFormat[T] {
@@ -19,12 +20,13 @@ object AnnotationJSON extends DefaultJsonProtocol {
 
   implicit object AnnotationFormat extends RootJsonFormat[Annotation] {
     override def write(annotation: Annotation) = {
-      def convertPrimitive(p: Any) = p match {
+      def convert(o: Any): JsValue = o match {
+        case Some(x) => convert(x)
         case None => JsNull
-        case i: Int => JsNumber(i)
-        case b: Boolean => JsBoolean(b)
-        case s: String => JsString(s.toString)
-        case _ => throw new Exception(s"Non JSON primitive $p")
+        case x: String => x.toJson
+        case x: Int => x.toJson
+        case x: Boolean => x.toJson
+        case _ => throw new Exception(s"No JSON conversion for $o")
       }
 
       val fvs: Seq[(String, Any)] = Seq(("type", annotation.getClass.getSimpleName)) ++
@@ -32,13 +34,7 @@ object AnnotationJSON extends DefaultJsonProtocol {
           field setAccessible true
           (field.getName, field.get(annotation))
         })
-      val jfvs = for ((f, v) <- fvs.toSeq if v != None;
-                      jv = v match {
-                        case Some(o) => convertPrimitive(o)
-                        case None => JsNull
-                        case _ => convertPrimitive(v)
-                      }
-      ) yield f -> jv
+      val jfvs = for ((f, v) <- fvs.toSeq) yield f -> convert(v)
       JsObject(jfvs: _*)
     }
 
