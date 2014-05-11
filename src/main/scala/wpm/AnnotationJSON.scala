@@ -4,7 +4,17 @@ import spray.json._
 import PolyJSON._
 import scala.{Boolean, Int}
 
+/**
+ * A JSON protocol that serializes case classes as JSON with the type of the case class written in as a type field in
+ * the JSON object.
+ */
 object AnnotationJSON extends DefaultJsonProtocol {
+  /**
+   * JSON serializer of an Annotation that writes the class name in as a type field.
+   * @param untypedFormat serializer that does not write the type information, e.g. jsonFormat1, jsonFormat2
+   * @tparam T the Annotation case class to be serialized
+   * @return implicit object that supports typed serialization of T by this protocol
+   */
   def typedFormat[T <: Annotation](untypedFormat: RootJsonFormat[T]) = new RootJsonFormat[T] {
     override def write(obj: T): JsValue = {
       val className = obj.getClass.getSimpleName
@@ -15,6 +25,12 @@ object AnnotationJSON extends DefaultJsonProtocol {
     override def read(json: JsValue) = untypedFormat.read(json)
   }
 
+  /**
+   * JSON serializer of an Annotation type.
+   *
+   * This is needed in addition to the serializers for the individual subtypes of Annotation because of type erasure
+   * when Annotation objects appear in collections.
+   */
   implicit object AnnotationFormat extends RootJsonFormat[Annotation] {
     override def write(annotation: Annotation) = {
       def convert(o: Any): JsValue = o match {
